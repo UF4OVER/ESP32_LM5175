@@ -59,7 +59,7 @@ class BLEUART:
         self._handler = handler
 
     def _irq(self, event, data):
-        # Track connections so we can send notifications.
+        # 跟踪连接，这样我们可以发送通知。
         if event == _IRQ_CENTRAL_CONNECT:
             conn_handle, _, _ = data
             print("_IRQ_CENTRAL_CONNECT")
@@ -144,7 +144,6 @@ def advertising_payload(limited_disc=False, br_edr=False, name=None, services=No
             elif len(b) == 16:
                 _append(_ADV_TYPE_UUID128_COMPLETE, b)
 
-    # See org.bluetooth.characteristic.gap.appearance.xml
     if appearance:
         _append(_ADV_TYPE_APPEARANCE, struct.pack("<h", appearance))
 
