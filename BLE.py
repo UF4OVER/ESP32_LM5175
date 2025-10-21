@@ -89,8 +89,26 @@ class BLEUART:
         return result
 
     def write(self, data):
+        # 将大数据分块发送，避免 ENOMEM 错误
+        chunk_size = 20  # 标准 BLE MTU 大小
         for conn_handle in self._connections:
-            self._ble.gatts_notify(conn_handle, self._tx_handle, data)
+            # 分块发送数据
+            for i in range(0, len(data), chunk_size):
+                chunk = data[i:i + chunk_size]
+                try:
+                    self._ble.gatts_notify(conn_handle, self._tx_handle, chunk)
+                except OSError as e:
+                    if e.errno == 12:  # ENOMEM
+                        # 如果内存不足，等待一点时间再重试
+                        import time
+                        time.sleep_us(100)
+                        try:
+                            self._ble.gatts_notify(conn_handle, self._tx_handle, chunk)
+                        except OSError:
+                            # 如果仍然失败，则跳过这个块
+                            pass
+                    else:
+                        raise
 
     def close(self):
         for conn_handle in self._connections:
